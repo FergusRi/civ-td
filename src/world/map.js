@@ -19,7 +19,7 @@ export const T = {
   WATER: 4,
 };
 
-// Tile colours
+// Tile colours (fallback when images not loaded)
 const COL = {
   [T.GRASS]: { fill: '#5A8A3C', border: '#4A7A2C' },
   [T.DIRT]:  { fill: '#9B7240', border: '#7A5230' },
@@ -27,6 +27,26 @@ const COL = {
   [T.SAND]:  { fill: '#C8A85A', border: '#A8883A' },
   [T.WATER]: { fill: '#2A6A9A', border: '#1A4A7A' },
 };
+
+// Pixel-art tile images (loaded once)
+const TILE_IMGS = {};
+const TILE_IMG_SRCS = {
+  [T.GRASS]: '/tiles/grass.png',
+  [T.DIRT]:  '/tiles/dirt.png',
+  [T.STONE]: '/tiles/stone.png',
+  [T.SAND]:  '/tiles/sand.png',
+  [T.WATER]: '/tiles/water.png',
+};
+export function preloadTileImages() {
+  return Promise.all(Object.entries(TILE_IMG_SRCS).map(([t, src]) => {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => { TILE_IMGS[t] = img; resolve(); };
+      img.onerror = () => resolve(); // fallback to colour
+      img.src = src;
+    });
+  }));
+}
 
 // ── Preloaded sprite images ───────────────────────────────────
 const _imgs = {};
@@ -330,31 +350,31 @@ export function renderWorld(ctx, cam) {
   for (let ty = ty0; ty <= ty1; ty++) {
     for (let tx = tx0; tx <= tx1; tx++) {
       const t  = _grid[ty * COLS + tx];
-      if (t === T.WATER) {
-        // Animated water shimmer
-        const shimmer = Math.sin(Date.now() * 0.002 + tx * 0.4 + ty * 0.4) * 8;
-        const baseBlue = 42;
-        const r = baseBlue + shimmer | 0;
-        const g = 106 + (shimmer * 0.5) | 0;
-        const b = 154 + shimmer | 0;
-        const wx = tx * TILE, wy = ty * TILE;
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.fillRect(wx, wy, TILE, TILE);
-        // Wave highlights
-        if ((tx + ty + (Date.now() / 400 | 0)) % 4 === 0) {
-          ctx.fillStyle = 'rgba(255,255,255,0.12)';
-          ctx.fillRect(wx + 4, wy + 4, TILE - 8, 2);
-        }
-        continue;
-      }
       const px = tx * TILE, py = ty * TILE;
-      const c  = COL[t] || COL[T.GRASS];
-
-      ctx.fillStyle = c.fill;
-      ctx.fillRect(px, py, TILE, TILE);
-      ctx.strokeStyle = c.border;
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(px+0.25, py+0.25, TILE-0.5, TILE-0.5);
+      const img = TILE_IMGS[t];
+      if (img) {
+        ctx.drawImage(img, px, py, TILE, TILE);
+        // Animated water shimmer overlay
+        if (t === T.WATER) {
+          const shimmer = Math.sin(Date.now() * 0.002 + tx * 0.4 + ty * 0.4);
+          ctx.fillStyle = `rgba(255,255,255,${0.04 + shimmer * 0.04})`;
+          ctx.fillRect(px, py, TILE, TILE);
+          if ((tx + ty + (Date.now() / 400 | 0)) % 4 === 0) {
+            ctx.fillStyle = 'rgba(255,255,255,0.10)';
+            ctx.fillRect(px + 4, py + 4, TILE - 8, 2);
+          }
+        }
+      } else {
+        // Fallback: flat colour
+        const c = COL[t] || COL[T.GRASS];
+        ctx.fillStyle = c.fill;
+        ctx.fillRect(px, py, TILE, TILE);
+        if (t === T.WATER) {
+          const shimmer = Math.sin(Date.now() * 0.002 + tx * 0.4 + ty * 0.4) * 8;
+          ctx.fillStyle = `rgba(255,255,255,${0.05 + shimmer * 0.005})`;
+          ctx.fillRect(px, py, TILE, TILE);
+        }
+      }
     }
   }
 }
