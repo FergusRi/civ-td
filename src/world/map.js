@@ -337,6 +337,7 @@ export function renderWorld(ctx, cam) {
         const r = baseBlue + shimmer | 0;
         const g = 106 + (shimmer * 0.5) | 0;
         const b = 154 + shimmer | 0;
+        const wx = tx * TILE, wy = ty * TILE;
         ctx.fillStyle = `rgb(${r},${g},${b})`;
         ctx.fillRect(wx, wy, TILE, TILE);
         // Wave highlights
