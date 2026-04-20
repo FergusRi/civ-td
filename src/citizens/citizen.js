@@ -130,53 +130,113 @@ export function updateCitizens(dt) {
 }
 
 export function renderCitizens(ctx) {
-  for (const c of citizens) {
+  // Y-sort citizens so those further south appear in front
+  const sorted = [...citizens].sort((a, b) => a.y - b.y);
+  for (const c of sorted) {
     _drawCitizen(ctx, c);
   }
 }
 
-// WorldBox-style tiny humanoid sprite (~16×16px)
+// WorldBox-style tiny humanoid — warm, friendly aesthetic
 function _drawCitizen(ctx, c) {
   const x = Math.round(c.x);
   const y = Math.round(c.y);
 
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  // Walk bob
+  const walkBob = Math.sin(Date.now() * 0.008 + c.x * 0.1) * 1.5;
+  const legSwing = Math.sin(Date.now() * 0.008 + c.x * 0.1);
+
+  // Drop shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
   ctx.beginPath();
-  ctx.ellipse(x, y + 6, 5, 2, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y + 7, 5, 2, 0, 0, Math.PI * 2);
   ctx.fill();
 
   // Legs
   ctx.fillStyle = '#5A3A0A';
-  ctx.fillRect(x - 3, y + 1, 2, 5);
-  ctx.fillRect(x + 1, y + 1, 2, 5);
+  ctx.fillRect(x - 3, y + 2 + Math.round(legSwing * 2),  2, 5);
+  ctx.fillRect(x + 1, y + 2 + Math.round(-legSwing * 2), 2, 5);
+
+  // Boots
+  ctx.fillStyle = '#3A2000';
+  ctx.fillRect(x - 4, y + 5 + Math.round(legSwing * 2),  3, 2);
+  ctx.fillRect(x + 1, y + 5 + Math.round(-legSwing * 2), 3, 2);
 
   // Body
-  ctx.fillStyle = '#E8D5A0';
-  ctx.fillRect(x - 3, y - 5, 6, 7);
+  const bodyColour = c.morale < 40 ? '#8899CC' : '#E8C87A';
+  ctx.fillStyle = bodyColour;
+  ctx.fillRect(x - 3, y - 4, 7, 7);
+
+  // Belt
+  ctx.fillStyle = '#6B3A0A';
+  ctx.fillRect(x - 3, y + 2, 7, 1);
+
+  // Collar / shirt detail
+  ctx.fillStyle = c.morale < 40 ? '#6677AA' : '#D4A050';
+  ctx.fillRect(x - 1, y - 4, 3, 2);
+
+  // Neck
+  ctx.fillStyle = '#FDBCB4';
+  ctx.fillRect(x - 1, y - 6, 3, 2);
 
   // Head
   ctx.fillStyle = '#FDBCB4';
   ctx.beginPath();
-  ctx.arc(x, y - 8, 4, 0, Math.PI * 2);
+  ctx.arc(x + 0.5, y - 9 + walkBob * 0.3, 4.5, 0, Math.PI * 2);
   ctx.fill();
+
+  // Hair — use citizen id to vary colour
+  const hairColours = ['#3A2000', '#8B5A00', '#D4A050', '#1A1A1A', '#CC4444'];
+  const hairIdx = Math.abs(c.id.charCodeAt(4) ?? 0) % hairColours.length;
+  ctx.fillStyle = hairColours[hairIdx];
+  ctx.beginPath();
+  ctx.arc(x + 0.5, y - 10.5 + walkBob * 0.3, 4, Math.PI, 0);
+  ctx.fill();
+  // Side hair tufts
+  ctx.fillRect(x - 4, y - 12 + walkBob * 0.3, 2, 4);
+  ctx.fillRect(x + 3, y - 12 + walkBob * 0.3, 2, 4);
 
   // Eyes
   ctx.fillStyle = '#222';
-  ctx.fillRect(x - 2, y - 9, 1, 1);
-  ctx.fillRect(x + 1, y - 9, 1, 1);
+  ctx.fillRect(x - 2, y - 10, 1, 1);
+  ctx.fillRect(x + 2, y - 10, 1, 1);
 
-  // Morale colour tint on body (low morale = blue-ish)
-  if (c.morale < 40) {
-    ctx.fillStyle = 'rgba(100,100,200,0.3)';
-    ctx.fillRect(x - 3, y - 5, 6, 7);
+  // Happy/sad expression
+  if (c.morale >= 60) {
+    ctx.fillStyle = '#FF9080';
+    ctx.fillRect(x - 1, y - 8, 3, 1); // smile
+  } else if (c.morale < 30) {
+    ctx.fillStyle = '#8899AA';
+    ctx.fillRect(x - 1, y - 7, 3, 1); // frown
   }
 
-  // HP bar
+  // Tool — show a tiny tool based on... variation
+  const toolIdx = Math.abs((c.id.charCodeAt(5) ?? 0)) % 3;
+  if (toolIdx === 0) {
+    // Axe
+    ctx.strokeStyle = '#888'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + 4, y - 3); ctx.lineTo(x + 4, y + 3); ctx.stroke();
+    ctx.fillStyle = '#AAA';
+    ctx.fillRect(x + 3, y - 4, 4, 3);
+  } else if (toolIdx === 1) {
+    // Farming hoe
+    ctx.strokeStyle = '#8B6914'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x + 4, y - 4); ctx.lineTo(x + 6, y + 3); ctx.stroke();
+    ctx.fillStyle = '#888';
+    ctx.fillRect(x + 3, y - 5, 5, 2);
+  } else {
+    // Bag / basket
+    ctx.fillStyle = '#C8963C';
+    ctx.fillRect(x + 4, y - 1, 4, 4);
+    ctx.fillStyle = '#A07020';
+    ctx.fillRect(x + 5, y - 2, 2, 1);
+  }
+
+  // HP bar (only when hurt)
   if (c.hp < c.maxHp) {
-    ctx.fillStyle = '#333';
-    ctx.fillRect(x - 5, y - 14, 10, 2);
-    ctx.fillStyle = '#4CAF50';
-    ctx.fillRect(x - 5, y - 14, 10 * (c.hp / c.maxHp), 2);
+    ctx.fillStyle = '#1A1A1A';
+    ctx.fillRect(x - 6, y - 17, 12, 3);
+    ctx.fillStyle = '#2ECC71';
+    ctx.fillRect(x - 6, y - 17, 12 * (c.hp / c.maxHp), 3);
   }
 }
