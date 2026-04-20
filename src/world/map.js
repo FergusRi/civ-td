@@ -1,4 +1,5 @@
 import { isMaskLand, EARTH_REGIONS, EARTH_MASK_W, EARTH_MASK_H } from './earth_mask.js';
+import { loadWangTileset, drawWangTile, hasWangTileset } from './wang.js';
 // ============================================================
 // map.js — 250×250 tile map with Whittaker-style noise biomes
 // Decoration pass: trees + rocks as Y-sorted sprites (no images needed)
@@ -38,14 +39,18 @@ const TILE_IMG_SRCS = {
   [T.WATER]: '/tiles/water.png',
 };
 export function preloadTileImages() {
-  return Promise.all(Object.entries(TILE_IMG_SRCS).map(([t, src]) => {
+  const tileLoads = Object.entries(TILE_IMG_SRCS).map(([t, src]) => {
     return new Promise(resolve => {
       const img = new Image();
       img.onload = () => { TILE_IMGS[t] = img; resolve(); };
-      img.onerror = () => resolve(); // fallback to colour
+      img.onerror = () => resolve();
       img.src = src;
     });
-  }));
+  });
+  const wangLoads = [
+    loadWangTileset('grass_water', '/tiles/grass_water.png'),
+  ];
+  return Promise.all([...tileLoads, ...wangLoads]);
 }
 
 // ── Preloaded sprite images ───────────────────────────────────
@@ -351,27 +356,35 @@ export function renderWorld(ctx, cam) {
     for (let tx = tx0; tx <= tx1; tx++) {
       const t  = _grid[ty * COLS + tx];
       const px = tx * TILE, py = ty * TILE;
-      const img = TILE_IMGS[t];
-      if (img) {
-        ctx.drawImage(img, px, py, TILE, TILE);
-        // Animated water shimmer overlay
-        if (t === T.WATER) {
+
+      // Wang transition tiles for grass↔water borders
+      const isGrassOrWater = (t === T.GRASS || t === T.WATER);
+      if (isGrassOrWater && hasWangTileset('grass_water')) {
+        // For Wang lookup: grass=base, water=alt
+        // We draw from grass's perspective: neighbour is "same" if also grass
+        const tN = ty > 0        ? _grid[(ty-1)*COLS+tx]     : t;
+        const tE = tx < COLS-1   ? _grid[ty*COLS+(tx+1)]     : t;
+        const tS = ty < ROWS-1   ? _grid[(ty+1)*COLS+tx]     : t;
+        const tW = tx > 0        ? _grid[ty*COLS+(tx-1)]     : t;
+        const sameN = tN === t, sameE = tE === t, sameS = tS === t, sameW = tW === t;
+        const drawnByWang = drawWangTile(ctx, 'grass_water', sameN, sameE, sameS, sameW, px, py, TILE);
+        if (t === T.WATER && drawnByWang) {
           const shimmer = Math.sin(Date.now() * 0.002 + tx * 0.4 + ty * 0.4);
-          ctx.fillStyle = `rgba(255,255,255,${0.04 + shimmer * 0.04})`;
+          ctx.fillStyle = `rgba(255,255,255,${0.03 + shimmer * 0.03})`;
           ctx.fillRect(px, py, TILE, TILE);
-          if ((tx + ty + (Date.now() / 400 | 0)) % 4 === 0) {
-            ctx.fillStyle = 'rgba(255,255,255,0.10)';
-            ctx.fillRect(px + 4, py + 4, TILE - 8, 2);
-          }
         }
       } else {
-        // Fallback: flat colour
-        const c = COL[t] || COL[T.GRASS];
-        ctx.fillStyle = c.fill;
-        ctx.fillRect(px, py, TILE, TILE);
-        if (t === T.WATER) {
-          const shimmer = Math.sin(Date.now() * 0.002 + tx * 0.4 + ty * 0.4) * 8;
-          ctx.fillStyle = `rgba(255,255,255,${0.05 + shimmer * 0.005})`;
+        const img = TILE_IMGS[t];
+        if (img) {
+          ctx.drawImage(img, px, py, TILE, TILE);
+          if (t === T.WATER) {
+            const shimmer = Math.sin(Date.now() * 0.002 + tx * 0.4 + ty * 0.4);
+            ctx.fillStyle = `rgba(255,255,255,${0.04 + shimmer * 0.04})`;
+            ctx.fillRect(px, py, TILE, TILE);
+          }
+        } else {
+          const c = COL[t] || COL[T.GRASS];
+          ctx.fillStyle = c.fill;
           ctx.fillRect(px, py, TILE, TILE);
         }
       }
