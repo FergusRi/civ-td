@@ -8,14 +8,15 @@ import { initCombat } from './combat/towers.js';
 import { initPhases } from './phases/phases.js';
 import { initUI } from './ui/hud.js';
 import { initResources } from './resources.js';
+import { showRegionSelect } from './screens/region_select.js';
 
 const canvas = document.getElementById('game-canvas');
 
-async function boot() {
+async function boot(regionId) {
   initEngine(canvas);
   initCamera(canvas);
   initInput(canvas);
-  initWorld();
+  initWorld(regionId);          // pass region so centre tiles correctly
   await preloadMapSprites();
   initResources();
   initBuildings();
@@ -26,4 +27,7 @@ async function boot() {
   startLoop();
 }
 
-boot();
+// Show continent picker first, then boot with chosen region
+showRegionSelect((regionId) => {
+  boot(regionId);
+});

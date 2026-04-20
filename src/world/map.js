@@ -1,3 +1,4 @@
+import { isMaskLand, EARTH_REGIONS, EARTH_MASK_W, EARTH_MASK_H } from './earth_mask.js';
 // ============================================================
 // map.js — 250×250 tile map with Whittaker-style noise biomes
 // Decoration pass: trees + rocks as Y-sorted sprites (no images needed)
@@ -15,6 +16,7 @@ export const T = {
   DIRT:  1,
   STONE: 2,
   SAND:  3,
+  WATER: 4,
 };
 
 // Tile colours
@@ -23,6 +25,7 @@ const COL = {
   [T.DIRT]:  { fill: '#9B7240', border: '#7A5230' },
   [T.STONE]: { fill: '#7A7A7A', border: '#5A5A5A' },
   [T.SAND]:  { fill: '#C8A85A', border: '#A8883A' },
+  [T.WATER]: { fill: '#2A6A9A', border: '#1A4A7A' },
 };
 
 // ── Preloaded sprite images ───────────────────────────────────
@@ -58,6 +61,14 @@ let _grid = new Uint8Array(COLS * ROWS);
 
 // Seeded RNG state
 export let MAP_SEED = 0;
+
+// Currently selected Earth region (set before initWorld)
+let _activeRegion = null; // null = classic noise map
+export function setEarthRegion(regionId) {
+  _activeRegion = EARTH_REGIONS.find(r => r.id === regionId) ?? null;
+}
+export function getEarthRegions() { return EARTH_REGIONS; }
+export function getActiveRegion()  { return _activeRegion; }
 
 // ── Seeded RNG (mulberry32) ───────────────────────────────────
 function mulberry32(seed) {
@@ -121,7 +132,8 @@ function whittaker(e, m) {
 }
 
 // ── Terrain generation ────────────────────────────────────────
-export function initWorld() {
+export function initWorld(regionId = null) {
+  if (regionId !== null) setEarthRegion(regionId);
   MAP_SEED = Date.now();
   _grid = new Uint8Array(COLS * ROWS);
   mapSprites.length = 0;
@@ -131,8 +143,10 @@ export function initWorld() {
 
 function _generateTerrain() {
   const rng = mulberry32(MAP_SEED);
-  const cx  = Math.floor(COLS / 2);
-  const cy  = Math.floor(ROWS / 2);
+  const useEarth = _activeRegion !== null;
+  // Use region start tile as settlement centre when Earth mode is active
+  const cx = _activeRegion ? _activeRegion.tx : Math.floor(COLS / 2);
+  const cy = _activeRegion ? _activeRegion.ty : Math.floor(ROWS / 2);
 
   // ── Pass 1: Noise-based biome tiles ──────────────────────
   const elevMap  = buildNoiseMap(COLS, [
@@ -151,7 +165,11 @@ function _generateTerrain() {
   for (let ty = 0; ty < ROWS; ty++) {
     for (let tx = 0; tx < COLS; tx++) {
       const i = ty * COLS + tx;
-      _grid[i] = whittaker(elevMap[i], moistMap[i]);
+      if (useEarth && !isMaskLand(tx, ty)) {
+        _grid[i] = T.WATER;
+      } else {
+        _grid[i] = whittaker(elevMap[i], moistMap[i]);
+      }
     }
   }
 
@@ -188,7 +206,7 @@ function _generateTerrain() {
     for (let dx = -CLEAR_R; dx <= CLEAR_R; dx++) {
       if (dx*dx + dy*dy > CLEAR_R*CLEAR_R) continue;
       const tx = cx+dx, ty = cy+dy;
-      if (_inBounds(tx,ty)) _grid[ty*COLS+tx] = T.GRASS;
+      if (_inBounds(tx,ty) && _grid[ty*COLS+tx] !== T.WATER) _grid[ty*COLS+tx] = T.GRASS;
     }
   }
   // Re-stamp dirt paths over clearing
@@ -239,7 +257,7 @@ function _scatterSprites(rng, cx, cy) {
       if (!_inBounds(tx, ty)) continue;
       const ddx = tx-cx, ddy = ty-cy;
       if (ddx*ddx + ddy*ddy < CLEAR_R2) continue;
-      if (_grid[ty*COLS+tx] === T.DIRT) continue; // no trees on roads
+      if (_grid[ty*COLS+tx] === T.DIRT || _grid[ty*COLS+tx] === T.WATER) continue; // no trees on roads/water
       const kind  = TREE_KINDS[Math.floor(rng() * TREE_KINDS.length)];
       const sizes = TREE_SIZES[kind];
       const size  = sizes[Math.floor(rng() * sizes.length)];
@@ -252,7 +270,7 @@ function _scatterSprites(rng, cx, cy) {
     for (let tx = 0; tx < COLS; tx++) {
       const ddx = tx-cx, ddy = ty-cy;
       if (ddx*ddx + ddy*ddy < CLEAR_R2) continue;
-      if (_grid[ty*COLS+tx] === T.DIRT) continue;
+      if (_grid[ty*COLS+tx] === T.DIRT || _grid[ty*COLS+tx] === T.WATER) continue;
       const h = _hash(MAP_SEED, tx, ty);
       if (h % 100 < 3) {
         const kind  = TREE_KINDS[h % TREE_KINDS.length];
@@ -297,7 +315,9 @@ export function setTile(tx, ty, type) {
   _grid[ty * COLS + tx] = type;
 }
 export function isWalkable(tx, ty) {
-  return _inBounds(tx, ty);
+  if (tx < 0 || ty < 0 || tx >= COLS || ty >= ROWS) return false;
+  const t = _grid[ty * COLS + tx];
+  return t !== T.STONE && t !== T.WATER;
 }
 
 // ── Ground tile render ────────────────────────────────────────
@@ -310,6 +330,22 @@ export function renderWorld(ctx, cam) {
   for (let ty = ty0; ty <= ty1; ty++) {
     for (let tx = tx0; tx <= tx1; tx++) {
       const t  = _grid[ty * COLS + tx];
+      if (t === T.WATER) {
+        // Animated water shimmer
+        const shimmer = Math.sin(Date.now() * 0.002 + tx * 0.4 + ty * 0.4) * 8;
+        const baseBlue = 42;
+        const r = baseBlue + shimmer | 0;
+        const g = 106 + (shimmer * 0.5) | 0;
+        const b = 154 + shimmer | 0;
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(wx, wy, TILE, TILE);
+        // Wave highlights
+        if ((tx + ty + (Date.now() / 400 | 0)) % 4 === 0) {
+          ctx.fillStyle = 'rgba(255,255,255,0.12)';
+          ctx.fillRect(wx + 4, wy + 4, TILE - 8, 2);
+        }
+        continue;
+      }
       const px = tx * TILE, py = ty * TILE;
       const c  = COL[t] || COL[T.GRASS];
 
