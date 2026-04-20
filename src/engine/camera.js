@@ -15,6 +15,12 @@ export function initCamera(canvas) {
   window.addEventListener('keydown', e => { _keys[e.key] = true; });
   window.addEventListener('keyup',   e => { _keys[e.key] = false; });
 
+  // Centre camera on the middle of the map at startup
+  const viewW = window.innerWidth  / cam.zoom;
+  const viewH = window.innerHeight / cam.zoom;
+  cam.x = Math.max(0, (MAP_PX - viewW) / 2);
+  cam.y = Math.max(0, (MAP_PX - viewH) / 2);
+
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;

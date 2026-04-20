@@ -1,5 +1,5 @@
 import { update } from '../phases/phases.js';
-import { renderWorld } from '../world/map.js';
+import { renderWorld, renderMapSprites } from '../world/map.js';
 import { renderBuildings } from '../buildings/placement.js';
 import { renderUnits } from '../combat/enemies.js';
 import { renderCitizens } from '../citizens/citizen.js';
@@ -50,6 +50,7 @@ function draw() {
 
   renderWorld(_ctx, cam);
   renderBuildings(_ctx, cam);
+  renderMapSprites(_ctx, cam);
   renderCitizens(_ctx);
   renderUnits(_ctx);
   renderProjectiles(_ctx);
