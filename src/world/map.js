@@ -204,7 +204,7 @@ function _generateTerrain() {
 function _scatterSprites(rng, cx, cy) {
   const CLEAR_R2 = 14 * 14;
   const TREE_KINDS = ['tree_oak', 'tree_pine', 'tree_large'];
-  const TREE_SIZES = { tree_oak: [18,22,26], tree_pine: [16,20,24], tree_large: [28,34,40] };
+  const TREE_SIZES = { tree_oak: [26,32,38], tree_pine: [16,20,24], tree_large: [28,34,40] };
 
   // Forest clusters near faction attack edges
   // N=Goblins, E=DarkElves, S=Undead, W=Orcs, NW=Giants
