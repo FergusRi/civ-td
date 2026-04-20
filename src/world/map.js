@@ -49,6 +49,8 @@ export function preloadTileImages() {
   });
   const wangLoads = [
     loadWangTileset('grass_water', '/tiles/grass_water.png'),
+    loadWangTileset('grass_dirt',  '/tiles/grass_dirt.png'),
+    loadWangTileset('sand_water',  '/tiles/sand_water.png'),
   ];
   return Promise.all([...tileLoads, ...wangLoads]);
 }
@@ -357,18 +359,30 @@ export function renderWorld(ctx, cam) {
       const t  = _grid[ty * COLS + tx];
       const px = tx * TILE, py = ty * TILE;
 
-      // Wang transition tiles for grass↔water borders
-      const isGrassOrWater = (t === T.GRASS || t === T.WATER);
-      if (isGrassOrWater && hasWangTileset('grass_water')) {
-        // For Wang lookup: grass=base, water=alt
-        // We draw from grass's perspective: neighbour is "same" if also grass
-        const tN = ty > 0        ? _grid[(ty-1)*COLS+tx]     : t;
-        const tE = tx < COLS-1   ? _grid[ty*COLS+(tx+1)]     : t;
-        const tS = ty < ROWS-1   ? _grid[(ty+1)*COLS+tx]     : t;
-        const tW = tx > 0        ? _grid[ty*COLS+(tx-1)]     : t;
-        const sameN = tN === t, sameE = tE === t, sameS = tS === t, sameW = tW === t;
-        const drawnByWang = drawWangTile(ctx, 'grass_water', sameN, sameE, sameS, sameW, px, py, TILE);
-        if (t === T.WATER && drawnByWang) {
+      // Helper: get neighbour tile type (clamp to self at edges)
+      const tN = ty > 0      ? _grid[(ty-1)*COLS+tx]   : t;
+      const tE = tx < COLS-1 ? _grid[ty*COLS+(tx+1)]   : t;
+      const tS = ty < ROWS-1 ? _grid[(ty+1)*COLS+tx]   : t;
+      const tW = tx > 0      ? _grid[ty*COLS+(tx-1)]   : t;
+
+      // Wang transition: grass↔water
+      if ((t === T.GRASS || t === T.WATER) && hasWangTileset('grass_water')) {
+        const sN = tN===t, sE = tE===t, sS = tS===t, sW = tW===t;
+        const drawn = drawWangTile(ctx, 'grass_water', sN, sE, sS, sW, px, py, TILE);
+        if (t === T.WATER && drawn) {
+          const shimmer = Math.sin(Date.now() * 0.002 + tx * 0.4 + ty * 0.4);
+          ctx.fillStyle = `rgba(255,255,255,${0.03 + shimmer * 0.03})`;
+          ctx.fillRect(px, py, TILE, TILE);
+        }
+      // Wang transition: grass↔dirt
+      } else if ((t === T.GRASS || t === T.DIRT) && hasWangTileset('grass_dirt')) {
+        const sN = tN===t, sE = tE===t, sS = tS===t, sW = tW===t;
+        drawWangTile(ctx, 'grass_dirt', sN, sE, sS, sW, px, py, TILE);
+      // Wang transition: sand↔water
+      } else if ((t === T.SAND || t === T.WATER) && hasWangTileset('sand_water')) {
+        const sN = tN===t, sE = tE===t, sS = tS===t, sW = tW===t;
+        const drawn = drawWangTile(ctx, 'sand_water', sN, sE, sS, sW, px, py, TILE);
+        if (t === T.WATER && drawn) {
           const shimmer = Math.sin(Date.now() * 0.002 + tx * 0.4 + ty * 0.4);
           ctx.fillStyle = `rgba(255,255,255,${0.03 + shimmer * 0.03})`;
           ctx.fillRect(px, py, TILE, TILE);
