@@ -607,7 +607,31 @@ const DRAW_FNS = {
   settlement:       (ctx, x, y, w, h)          => _drawSettlement(ctx, x, y, w, h),
 };
 
+// RimWorld-style wall block: draw texture tile, then overlay dark borders on disconnected sides
+function _drawWallBlock(ctx, type, adjMask, x, y, w, h) {
+  const img = _bldImgs[type];
+  if (img) ctx.drawImage(img, x, y, w, h);
+  else {
+    const cols = { wall_wood: '#8B6340', wall_stone: '#7A7A7A', wall_metal: '#6A7A8A' };
+    ctx.fillStyle = cols[type] || '#888';
+    ctx.fillRect(x, y, w, h);
+  }
+  // Dark edge on each disconnected side (N=1,E=2,S=4,W=8)
+  const edge = 'rgba(0,0,0,0.55)';
+  const t = 3; // edge thickness
+  ctx.fillStyle = edge;
+  if (!(adjMask & 1)) ctx.fillRect(x,     y,     w, t); // N
+  if (!(adjMask & 2)) ctx.fillRect(x+w-t, y,     t, h); // E
+  if (!(adjMask & 4)) ctx.fillRect(x,     y+h-t, w, t); // S
+  if (!(adjMask & 8)) ctx.fillRect(x,     y,     t, h); // W
+}
+
 export function drawBuildingSprite(ctx, type, _state, x, y, w, h, aimAngle = 0, adjMask = 0) {
+  // RimWorld-style block rendering for walls
+  if (type === 'wall_wood' || type === 'wall_stone' || type === 'wall_metal') {
+    _drawWallBlock(ctx, type, adjMask, x, y, w, h);
+    return;
+  }
   // Use pixel-art tile image if loaded
   const img = _bldImgs[type];
   if (img) {
