@@ -3,6 +3,27 @@ import { placedBuildings, damageBuilding, getBuilding } from '../buildings/place
 import { events, EV } from '../engine/events.js';
 import { EFFECTIVENESS } from '../buildings/registry.js';
 
+// ── Unit sprite images ────────────────────────────────────────────────────────
+const _unitImgs = {};
+const _UNIT_IMG_SRCS = {
+  goblin:  '/units/goblin.png',
+  orc:     '/units/orc.png',
+  undead:  '/units/undead.png',
+  darkelf: '/units/darkelf.png',
+  giant:   '/units/giant.png',
+  shadow:  '/units/shadow.png',
+};
+export function preloadUnitImages() {
+  return Promise.all(Object.entries(_UNIT_IMG_SRCS).map(([key, src]) =>
+    new Promise(resolve => {
+      const img = new Image();
+      img.onload  = () => { _unitImgs[key] = img; resolve(); };
+      img.onerror = () => resolve();
+      img.src = src;
+    })
+  ));
+}
+
 export const enemies = [];
 
 // ── Faction definitions ───────────────────────────────────────────────────────
@@ -253,7 +274,11 @@ function _drawEnemy(ctx, e) {
   const x    = Math.round(e.x);
   const y    = Math.round(e.y);
 
-  if (e.faction === 'giant') {
+  const img = _unitImgs[e.faction];
+  if (img) {
+    const sz = e.faction === 'giant' ? def.size * 2.5 : def.size * 2;
+    ctx.drawImage(img, x - sz / 2, y - sz / 2, sz, sz);
+  } else if (e.faction === 'giant') {
     _drawGiant(ctx, e, x, y, def);
   } else {
     _drawHumanoid(ctx, e, x, y, def);
