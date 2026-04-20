@@ -3,6 +3,7 @@ import { initCamera } from './engine/camera.js';
 import { initInput } from './engine/input.js';
 import { initWorld, preloadMapSprites, preloadTileImages } from './world/map.js';
 import { initBuildings } from './buildings/placement.js';
+import { preloadBuildingImages } from './buildings/sprites.js';
 import { initCitizens } from './citizens/citizen.js';
 import { initCombat } from './combat/towers.js';
 import { initPhases } from './phases/phases.js';
@@ -17,7 +18,7 @@ async function boot(regionId) {
   initCamera(canvas);
   initInput(canvas);
   initWorld(regionId);          // pass region so centre tiles correctly
-  await Promise.all([preloadMapSprites(), preloadTileImages()]);
+  await Promise.all([preloadMapSprites(), preloadTileImages(), preloadBuildingImages()]);
   initResources();
   initBuildings();
   initCitizens();

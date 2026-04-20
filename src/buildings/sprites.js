@@ -2,6 +2,35 @@
 // Tiny, charming, chunky — like Worldbox's civilisation buildings
 // All draw functions receive (ctx, x, y, w, h)
 
+// ── Pixel-art building images (loaded once, fallback to procedural) ────────────
+const _bldImgs = {};
+const _BLD_IMG_SRCS = {
+  cottage:         '/buildings/house.png',
+  barracks:        '/buildings/barracks.png',
+  market:          '/buildings/market.png',
+  watchtower:      '/buildings/tower.png',
+  tower_archer:    '/buildings/tower.png',
+  tower_ballista:  '/buildings/tower.png',
+  tower_cannon:    '/buildings/tower.png',
+  tower_mage:      '/buildings/tower.png',
+  tower_frost:     '/buildings/tower.png',
+  tower_lightning: '/buildings/tower.png',
+  tower_catapult:  '/buildings/tower.png',
+  farm:            '/buildings/farm.png',
+  mine:            '/buildings/mine.png',
+};
+
+export function preloadBuildingImages() {
+  return Promise.all(Object.entries(_BLD_IMG_SRCS).map(([key, src]) =>
+    new Promise(resolve => {
+      const img = new Image();
+      img.onload  = () => { _bldImgs[key] = img; resolve(); };
+      img.onerror = () => resolve();
+      img.src = src;
+    })
+  ));
+}
+
 // ── Shared helpers ─────────────────────────────────────────────────────────────
 
 function _shadow(ctx, x, y, w, h) {
@@ -572,6 +601,13 @@ const DRAW_FNS = {
 };
 
 export function drawBuildingSprite(ctx, type, _state, x, y, w, h, aimAngle = 0, adjMask = 0) {
+  // Use pixel-art tile image if loaded
+  const img = _bldImgs[type];
+  if (img) {
+    ctx.drawImage(img, x, y, w, h);
+    return;
+  }
+  // Fallback: procedural drawing
   const fn = DRAW_FNS[type];
   if (fn) {
     fn(ctx, x, y, w, h, aimAngle, adjMask);
