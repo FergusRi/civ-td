@@ -25,6 +25,27 @@ const COL = {
   [T.SAND]:  { fill: '#C8A85A', border: '#A8883A' },
 };
 
+// ── Preloaded sprite images ───────────────────────────────────
+const _imgs = {};
+const _IMG_PATHS = {
+  tree_oak:   'assets/trees/tree_oak.png',
+  tree_pine:  'assets/trees/tree_pine_grass.png',
+  tree_large: 'assets/trees/tree_acacia.png',
+  rock_small: 'assets/decor/rock_grass.png',
+  rock_large: 'assets/decor/rock_grass2.png',
+};
+
+export function preloadMapSprites() {
+  return Promise.all(Object.entries(_IMG_PATHS).map(([key, src]) => {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload  = () => { _imgs[key] = img; resolve(); };
+      img.onerror = () => { console.warn(`[map] failed to load ${src}`); resolve(); };
+      img.src = src;
+    });
+  }));
+}
+
 // ── Sprite objects scattered on terrain ──────────────────────
 // Each entry: { tx, ty, kind, size }
 export const mapSprites = [];
@@ -317,14 +338,32 @@ export function renderMapSprites(ctx, cam) {
 }
 
 function _drawSprite(ctx, s, wx, wy) {
-  const r = s.size / 2;
+  const r   = s.size / 2;
+  const isTree = s.kind.startsWith('tree');
 
+  // Map sprite kind → image key
+  const imgKey = s.kind === 'tree_oak'   ? 'tree_oak'
+               : s.kind === 'tree_pine'  ? 'tree_pine'
+               : s.kind === 'tree_large' ? 'tree_large'
+               : s.kind === 'stone_small'? 'rock_small'
+               : s.kind === 'stone_large'? 'rock_large'
+               : null;
+
+  const img = imgKey ? _imgs[imgKey] : null;
+
+  if (img) {
+    // Draw as image — anchor bottom-centre at (wx, wy)
+    const drawH = isTree ? s.size * 2 : s.size * 1.2;
+    const drawW = isTree ? s.size * 1.6 : s.size * 1.4;
+    ctx.drawImage(img, wx - drawW/2, wy - drawH, drawW, drawH);
+    return;
+  }
+
+  // ── Procedural fallback (if image failed to load) ─────────
   switch (s.kind) {
     case 'tree_oak': {
       ctx.fillStyle = '#5A3A0A';
       ctx.fillRect(wx-2, wy-r*0.4, 4, r*0.5);
-      ctx.fillStyle = 'rgba(0,0,0,0.18)';
-      ctx.beginPath(); ctx.ellipse(wx, wy, r*0.7, r*0.25, 0, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#1E5218';
       ctx.beginPath(); ctx.arc(wx, wy-r*0.55, r*0.85, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#2D7A28';
@@ -336,19 +375,10 @@ function _drawSprite(ctx, s, wx, wy) {
     case 'tree_pine': {
       ctx.fillStyle = '#6B4020';
       ctx.fillRect(wx-2, wy-r*0.3, 4, r*0.4);
-      ctx.fillStyle = 'rgba(0,0,0,0.15)';
-      ctx.beginPath(); ctx.ellipse(wx, wy, r*0.5, r*0.18, 0, 0, Math.PI*2); ctx.fill();
-      const layers = [
-        { yOff: 0,        w: r*0.9, col: '#1A4A18' },
-        { yOff: -r*0.4,   w: r*0.7, col: '#256020' },
-        { yOff: -r*0.7,   w: r*0.5, col: '#307828' },
-      ];
-      for (const l of layers) {
-        ctx.fillStyle = l.col;
+      for (const [yo, w, col] of [[0,r*0.9,'#1A4A18'],[-r*0.4,r*0.7,'#256020'],[-r*0.7,r*0.5,'#307828']]) {
+        ctx.fillStyle = col;
         ctx.beginPath();
-        ctx.moveTo(wx,      wy-r*1.1+l.yOff);
-        ctx.lineTo(wx-l.w,  wy-r*0.2+l.yOff);
-        ctx.lineTo(wx+l.w,  wy-r*0.2+l.yOff);
+        ctx.moveTo(wx, wy-r*1.1+yo); ctx.lineTo(wx-w, wy-r*0.2+yo); ctx.lineTo(wx+w, wy-r*0.2+yo);
         ctx.closePath(); ctx.fill();
       }
       break;
@@ -356,12 +386,8 @@ function _drawSprite(ctx, s, wx, wy) {
     case 'tree_large': {
       ctx.fillStyle = '#4A2A08';
       ctx.fillRect(wx-3, wy-r*0.35, 6, r*0.45);
-      ctx.fillStyle = 'rgba(0,0,0,0.22)';
-      ctx.beginPath(); ctx.ellipse(wx, wy, r*0.8, r*0.28, 0, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#163A14';
       ctx.beginPath(); ctx.arc(wx, wy-r*0.5, r*0.95, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#246020';
-      ctx.beginPath(); ctx.arc(wx+r*0.3, wy-r*0.6, r*0.75, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#2D7A28';
       ctx.beginPath(); ctx.arc(wx-r*0.2, wy-r*0.8, r*0.65, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#50B048';
@@ -369,27 +395,17 @@ function _drawSprite(ctx, s, wx, wy) {
       break;
     }
     case 'stone_small': {
-      ctx.fillStyle = 'rgba(0,0,0,0.2)';
-      ctx.beginPath(); ctx.ellipse(wx, wy, r*0.9, r*0.35, 0, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#7A7A7A';
       ctx.beginPath(); ctx.ellipse(wx, wy-r*0.4, r, r*0.7, 0, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#AAAAAA';
       ctx.beginPath(); ctx.ellipse(wx-r*0.25, wy-r*0.65, r*0.4, r*0.28, 0, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#555';
-      ctx.beginPath(); ctx.ellipse(wx, wy-r*0.2, r*0.75, r*0.3, 0, 0, Math.PI*2); ctx.fill();
       break;
     }
     case 'stone_large': {
-      ctx.fillStyle = 'rgba(0,0,0,0.25)';
-      ctx.beginPath(); ctx.ellipse(wx, wy, r*1.1, r*0.4, 0, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#6E6E6E';
       ctx.beginPath(); ctx.ellipse(wx-r*0.1, wy-r*0.45, r*1.0, r*0.75, -0.2, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#7E7E7E';
-      ctx.beginPath(); ctx.ellipse(wx+r*0.15, wy-r*0.5, r*0.8, r*0.6, 0.2, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#B0B0B0';
       ctx.beginPath(); ctx.ellipse(wx-r*0.3, wy-r*0.75, r*0.45, r*0.3, -0.3, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = '#444'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(wx+r*0.1, wy-r*0.3); ctx.lineTo(wx-r*0.1, wy-r*0.7); ctx.stroke();
       break;
     }
   }
