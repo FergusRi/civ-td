@@ -2,29 +2,7 @@
 // Tiny, charming, chunky — like Worldbox's civilisation buildings
 // All draw functions receive (ctx, x, y, w, h)
 
-// ── Wang tilesets for walls (seamless connected segments) ─────────────────────
-import { loadWangTileset, drawWangTile, hasWangTileset } from '../world/wang.js';
-
-const _WALL_WANG_SRCS = {
-  wall_wood:  '/buildings/wall_wood.png',
-  wall_stone: '/buildings/wall_stone.png',
-  wall_metal: '/buildings/wall_metal.png',
-};
-
-export function preloadWallTilesets() {
-  return Promise.all(
-    Object.entries(_WALL_WANG_SRCS).map(([key, src]) => loadWangTileset(key, src))
-  );
-}
-
-export function drawWallSprite(ctx, type, adjMask, x, y, w) {
-  if (!hasWangTileset(type)) return false;
-  const sameN = !!(adjMask & 1);
-  const sameE = !!(adjMask & 2);
-  const sameS = !!(adjMask & 4);
-  const sameW = !!(adjMask & 8);
-  return drawWangTile(ctx, type, sameN, sameE, sameS, sameW, x, y, w);
-}
+export function preloadWallTilesets() { return Promise.resolve(); } // walls now use tile_object images via _BLD_IMG_SRCS
 
 // ── Pixel-art building images (loaded once, fallback to procedural) ────────────
 const _bldImgs = {};
@@ -44,6 +22,9 @@ const _BLD_IMG_SRCS = {
   mine:            '/buildings/mine.png',
   lumberyard:      '/buildings/lumberyard.png',
   settlement:      '/buildings/settlement.png',
+  wall_wood:       '/buildings/wall_wood.png',
+  wall_stone:      '/buildings/wall_stone.png',
+  wall_metal:      '/buildings/wall_metal.png',
 };
 
 export function preloadBuildingImages() {
@@ -627,10 +608,6 @@ const DRAW_FNS = {
 };
 
 export function drawBuildingSprite(ctx, type, _state, x, y, w, h, aimAngle = 0, adjMask = 0) {
-  // Wang tileset for walls (seamless connections)
-  if (type === 'wall_wood' || type === 'wall_stone' || type === 'wall_metal') {
-    if (drawWallSprite(ctx, type, adjMask, x, y, w)) return;
-  }
   // Use pixel-art tile image if loaded
   const img = _bldImgs[type];
   if (img) {
