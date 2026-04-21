@@ -210,7 +210,86 @@ export const BUILDINGS = {
     desc:     'Longest range, huge AoE. Struggles vs fast units.',
   },
 
+  // === PROCESSING (unlocked via research) ===
+  sawmill: {
+    label:    'Sawmill',
+    category: 'production',
+    cost:     { wood: 20, stone: 5 },
+    produces: {},
+    hp:       60,
+    size:     1,
+    isProcessor: true,
+    input:    'wood',  output: 'planks',  ratio: 2,
+    desc:     'Converts 2 Wood → 1 Plank each wave. Unlocked via Carpentry.',
+  },
+  mason: {
+    label:    'Mason',
+    category: 'production',
+    cost:     { wood: 15, stone: 10 },
+    produces: {},
+    hp:       65,
+    size:     1,
+    isProcessor: true,
+    input:    'stone', output: 'bricks', ratio: 2,
+    desc:     'Converts 2 Stone → 1 Brick each wave. Unlocked via Quarrying.',
+  },
+  mill: {
+    label:    'Mill',
+    category: 'production',
+    cost:     { wood: 25 },
+    produces: {},
+    hp:       55,
+    size:     1,
+    isProcessor: true,
+    input:    'food',  output: 'flour',  ratio: 2,
+    desc:     'Converts 2 Food → 1 Flour each wave. Unlocked via Agriculture.',
+  },
+  smelter: {
+    label:    'Smelter',
+    category: 'production',
+    cost:     { stone: 20, wood: 10 },
+    produces: {},
+    hp:       80,
+    size:     1,
+    isProcessor: true,
+    input:    'iron',  output: 'iron_bar', ratio: 2,
+    desc:     'Converts 2 Iron Ore → 1 Iron Bar. Unlocked via Metallurgy.',
+  },
+  bakery: {
+    label:    'Bakery',
+    category: 'production',
+    cost:     { wood: 20, stone: 5 },
+    produces: {},
+    hp:       55,
+    size:     1,
+    isProcessor: true,
+    input:    'flour', output: 'bread',  ratio: 1,
+    desc:     'Converts 1 Flour → 1 Bread (feeds 2 citizens). Unlocked via Breadmaking.',
+  },
+  forge: {
+    label:    'Forge',
+    category: 'production',
+    cost:     { stone: 30, iron_bar: 5 },
+    produces: {},
+    hp:       90,
+    size:     1,
+    isProcessor: true,
+    input:    'iron_bar', output: 'steel', ratio: 1,
+    inputExtra: 'planks',
+    desc:     'Combines Iron Bars + Planks → Steel. Unlocked via Steelworking.',
+  },
+
   // === UTILITY ===
+  black_market: {
+    label:    'Black Market',
+    category: 'utility',
+    cost:     { wood: 30, gold: 20 },
+    produces: {},
+    hp:       70,
+    size:     1,
+    isBlackMarket: true,
+    desc:     'Click to open the research tree. Buy blueprints with gold.',
+  },
   watchtower: {
     label:    'Watchtower',
     category: 'utility',
@@ -235,11 +314,11 @@ export const BUILDINGS = {
 
 // Tab categories for the build panel
 export const BUILDING_CATEGORIES = [
-  { label: '⚒ Production', types: ['lumberyard', 'farm', 'mine', 'trade_terminal'] },
+  { label: '⚒ Production', types: ['lumberyard', 'farm', 'mine', 'trade_terminal', 'sawmill', 'mason', 'mill', 'smelter', 'bakery', 'forge'] },
   { label: '🏠 Housing',   types: ['cottage'] },
   { label: '🧱 Walls',     types: ['wall_wood', 'wall_stone', 'wall_metal'] },
   { label: '🏹 Towers',    types: ['tower_archer', 'tower_ballista', 'tower_cannon', 'tower_mage', 'tower_frost', 'tower_lightning', 'tower_catapult'] },
-  { label: '🔭 Utility',   types: ['watchtower'] },
+  { label: '🔭 Utility',   types: ['watchtower', 'black_market'] },
 ];
 
 // Tower × Faction effectiveness (multiplier on damage dealt)

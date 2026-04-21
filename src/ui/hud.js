@@ -7,6 +7,7 @@ import { BUILDING_CATEGORIES, BUILDINGS } from '../buildings/registry.js';
 import { selectBuildingType, getSelectedType, cancelPlacement } from '../buildings/placement.js';
 import { hasResources } from '../resources.js';
 import { initZoneToolbar, setZoneTabActive, cancelZoneTool } from './zone_toolbar.js';
+import { isBuildingUnlocked } from '../research/research_tree.js';
 
 // ── DOM build panel ──────────────────────────────────────────────────────────
 let _root;
@@ -117,28 +118,32 @@ function _renderTabBody(body, types) {
     const def = BUILDINGS[type];
     if (!def) return;
 
-    const btn   = _el('button', 'build-btn');
-    const canAfford = hasResources(def.cost);
-    if (!canAfford) btn.classList.add('cant-afford');
+    const unlocked  = isBuildingUnlocked(type);
+    const btn       = _el('button', 'build-btn');
+    const canAfford = unlocked && hasResources(def.cost);
+
+    if (!unlocked)   btn.classList.add('locked');
+    if (!canAfford && unlocked) btn.classList.add('cant-afford');
     if (getSelectedType() === type) btn.classList.add('selected');
+    if (!unlocked) btn.disabled = true;
 
     const costStr = Object.entries(def.cost)
       .map(([k, v]) => `${_resIcon(k)}${v}`)
       .join(' ') || 'Free';
 
-    btn.innerHTML = `
-      <span class="btn-label">${def.label}</span>
-      <span class="btn-cost">${costStr}</span>
-    `;
+    btn.innerHTML = unlocked
+      ? `<span class="btn-label">${def.label}</span><span class="btn-cost">${costStr}</span>`
+      : `<span class="btn-label">🔒 ${def.label}</span><span class="btn-cost">Research required</span>`;
+
     btn.title = def.desc ?? '';
 
     btn.addEventListener('click', () => {
+      if (!unlocked) return;
       if (getSelectedType() === type) {
         cancelPlacement();
       } else {
         selectBuildingType(type);
       }
-      // Re-render to show selection state
       _renderTabBody(body, types);
     });
 

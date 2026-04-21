@@ -313,3 +313,98 @@ body {
   border-color: #555;
   color: #888;
 }
+
+/* ── Black Market Panel ───────────────────────────────────────── */
+#bm-panel {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: #12100a;
+  border: 2px solid #6a3fa0;
+  border-radius: 8px;
+  padding: 16px 20px;
+  width: 520px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 200;
+  box-shadow: 0 0 40px rgba(100,40,160,0.5);
+  overflow: hidden;
+}
+
+.bm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #c89aff;
+  border-bottom: 1px solid #3a2860;
+  padding-bottom: 8px;
+}
+.bm-header button {
+  background: none; border: none;
+  color: #aaa; font-size: 1rem; cursor: pointer; padding: 2px 6px;
+}
+.bm-header button:hover { color: #fff; }
+
+.bm-sub {
+  font-size: 0.75rem; color: #7a6890; margin: 0;
+}
+
+.bm-tabs {
+  display: flex; gap: 8px;
+}
+.bm-tab {
+  flex: 1; padding: 6px;
+  background: #1e1830; border: 1px solid #3a2860;
+  border-radius: 5px; color: #9a80b8;
+  font-family: inherit; font-size: 0.85rem; cursor: pointer;
+}
+.bm-tab.active {
+  background: #2e2048; border-color: #8a60d0; color: #c89aff;
+}
+
+#bm-body {
+  overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+}
+
+.bm-era-label {
+  font-size: 0.7rem; font-weight: bold; color: #6a5888;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.bm-era-cards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.bm-card {
+  background: #1a1628; border: 1px solid #3a2860;
+  border-radius: 6px; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.bm-card.bm-done  { border-color: #4a8a4a; background: #121e12; }
+.bm-card.bm-locked{ opacity: 0.5; }
+.bm-card-title { font-size: 0.9rem; color: #c89aff; font-weight: bold; }
+.bm-card-desc  { font-size: 0.75rem; color: #9a88b0; }
+.bm-card-meta  { display: flex; flex-direction: column; gap: 2px; font-size: 0.7rem; }
+.bm-req     { color: #8a6a40; }
+.bm-unlocks { color: #6a9a6a; }
+.bm-effect  { color: #6a8aaa; }
+.bm-buy {
+  margin-top: 6px; padding: 5px 10px;
+  background: #2e1a50; border: 1px solid #8a60d0;
+  border-radius: 4px; color: #c89aff;
+  font-family: inherit; font-size: 0.8rem; cursor: pointer;
+  align-self: flex-start;
+}
+.bm-buy:hover:not(:disabled) { background: #4a2880; }
+.bm-buy.done   { background: #1a2e1a; border-color: #4a8a4a; color: #6aaa6a; cursor: default; }
+.bm-buy.locked { background: #1a1a1a; border-color: #444; color: #666; cursor: default; }
+.bm-buy.poor   { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Locked building in build panel ─────────────────────────── */
+.build-btn.locked {
+  opacity: 0.45; cursor: not-allowed;
+  border-color: #444 !important;
+}

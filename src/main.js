@@ -14,6 +14,7 @@ import { showRegionSelect } from './screens/region_select.js';
 import { initZones } from './world/zones.js';
 import { initResourceNodes } from './world/resources_map.js';
 import { initTradePanel } from './ui/trade_panel.js';
+import { initBlackMarketPanel } from './ui/black_market_panel.js';
 
 const canvas = document.getElementById('game-canvas');
 
@@ -38,6 +39,7 @@ async function boot(regionId) {
   initPhases();
   initUI();
   initTradePanel(document.getElementById('ui-root'));
+  initBlackMarketPanel(document.getElementById('ui-root'));
   startLoop();
 }
 

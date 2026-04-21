@@ -12,6 +12,7 @@ import {
 import { ZONE } from '../world/zones.js';
 import { BUILDINGS } from '../buildings/registry.js';
 import { openTradePanel } from '../ui/trade_panel.js';
+import { openBlackMarket } from '../ui/black_market_panel.js';
 import { TILE } from '../world/map.js';
 
 let _canvas;
@@ -47,7 +48,8 @@ export function initInput(canvas) {
       const b  = getBuilding(tx, ty);
       if (b) {
         const def = BUILDINGS[b.type];
-        if (def?.isTrade) { openTradePanel(); return; }
+        if (def?.isTrade)        { openTradePanel();    return; }
+        if (def?.isBlackMarket)  { openBlackMarket();   return; }
       }
     }
 
