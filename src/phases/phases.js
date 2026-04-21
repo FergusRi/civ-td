@@ -94,20 +94,62 @@ function _sample(arr, n) {
 // ── Production tick (per wave end) ───────────────────────────────────────────
 function _doProduction() {
   const gain = {};
-  const seen = new Set();
+  const spend = {};
+  const seen  = new Set();
+  const res   = getResources();
 
   for (const b of placedBuildings.values()) {
     if (seen.has(b.id)) continue;
     seen.add(b.id);
     const def = BUILDINGS[b.type];
-    if (!def?.produces) continue;
-    for (const [res, amt] of Object.entries(def.produces)) {
-      gain[res] = (gain[res] ?? 0) + amt;
+    if (!def) continue;
+
+    // Standard producers (farms, mines, etc.)
+    if (def.produces) {
+      for (const [r, amt] of Object.entries(def.produces)) {
+        gain[r] = (gain[r] ?? 0) + amt;
+      }
+    }
+
+    // Processing buildings: consume input → produce output
+    if (def.isProcessor) {
+      const inputRes  = def.input;
+      const outputRes = def.output;
+      const ratio     = def.ratio ?? 1;   // input units needed per 1 output
+      const available = (res[inputRes] ?? 0) + (gain[inputRes] ?? 0) - (spend[inputRes] ?? 0);
+      const batches   = Math.floor(available / ratio);
+      if (batches > 0) {
+        spend[inputRes]  = (spend[inputRes]  ?? 0) + batches * ratio;
+        gain[outputRes]  = (gain[outputRes]  ?? 0) + batches;
+      }
+
+      // Forge needs a second input (planks)
+      if (def.inputExtra && batches > 0) {
+        const extraAvail = (res[def.inputExtra] ?? 0) + (gain[def.inputExtra] ?? 0) - (spend[def.inputExtra] ?? 0);
+        const extraBatches = Math.min(batches, extraAvail);
+        if (extraBatches < batches) {
+          // Roll back — not enough extra input
+          spend[inputRes]  -= (batches - extraBatches) * ratio;
+          gain[outputRes]  -= (batches - extraBatches);
+          spend[def.inputExtra] = (spend[def.inputExtra] ?? 0) + extraBatches;
+        } else {
+          spend[def.inputExtra] = (spend[def.inputExtra] ?? 0) + batches;
+        }
+      }
     }
   }
 
-  // Food upkeep: 1 food per citizen per wave
-  gain.food = (gain.food ?? 0) - citizens.length;
+  // Apply spending (processors consumed inputs)
+  for (const [r, amt] of Object.entries(spend)) {
+    gain[r] = (gain[r] ?? 0) - amt;
+  }
+
+  // Food upkeep: bread feeds 2 citizens, raw food feeds 1
+  const breadAvail  = Math.min(res.bread ?? 0, Math.ceil(citizens.length / 2));
+  const fedByBread  = breadAvail * 2;
+  const stillHungry = Math.max(0, citizens.length - fedByBread);
+  gain.bread = (gain.bread ?? 0) - breadAvail;
+  gain.food  = (gain.food  ?? 0) - stillHungry;
 
   addResources(gain);
 }

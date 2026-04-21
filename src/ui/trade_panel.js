@@ -3,7 +3,7 @@
 
 import { getResources, spendResources, addResources } from '../resources.js';
 
-const BASE_PRICES = { wood: 2, stone: 3, food: 1, iron: 4 };
+const BASE_PRICES = { wood: 2, stone: 3, food: 1, iron: 4, planks: 5, bricks: 7, flour: 3, bread: 5, steel: 12 };
 let _prices = { ...BASE_PRICES };
 let _panel  = null;
 let _open   = false;
@@ -69,7 +69,7 @@ function _refreshPanel() {
     .map(([r]) => {
       const have  = res[r] ?? 0;
       const price = _prices[r] ?? BASE_PRICES[r];
-      const icon  = { wood:'🪵', stone:'🪨', food:'🌾', iron:'⚙️' }[r] ?? '📦';
+      const icon  = { wood:'🪵', stone:'🪨', food:'🌾', iron:'⛏', planks:'🪵', bricks:'🧱', flour:'🌾', bread:'🍞', steel:'⚙️' }[r] ?? '📦';
       return `
         <div class="trade-row" data-res="${r}">
           <span class="trade-icon">${icon}</span>

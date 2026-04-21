@@ -2,10 +2,16 @@ import { events, EV } from './engine/events.js';
 
 // Current stockpile
 const _res = {
-  wood:  50,
-  stone: 30,
-  food:  40,
-  gold:  10,
+  wood:   50,
+  stone:  30,
+  food:   40,
+  gold:   10,
+  iron:   0,
+  planks: 0,
+  bricks: 0,
+  flour:  0,
+  bread:  0,
+  steel:  0,
 };
 
 export function getResources() { return { ..._res }; }

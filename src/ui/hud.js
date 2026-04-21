@@ -161,15 +161,16 @@ export function renderUI(ctx, W, H) {
 // ── Event handlers ─────────────────────────────────────────────────────────────
 function _updateResBar(res) {
   if (!_resBar) return;
-  _resBar.innerHTML = `
-    🪵 <b>${res.wood ?? 0}</b>
-    &nbsp;&nbsp;
-    🪨 <b>${res.stone ?? 0}</b>
-    &nbsp;&nbsp;
-    🌾 <b>${res.food ?? 0}</b>
-    &nbsp;&nbsp;
-    🪙 <b>${res.gold ?? 0}</b>
-  `;
+  const base = `🪵<b>${res.wood??0}</b> 🪨<b>${res.stone??0}</b> 🌾<b>${res.food??0}</b> 🪙<b>${res.gold??0}</b>`;
+  const processed = [
+    res.iron   > 0 ? `⛏<b>${res.iron}</b>`    : '',
+    res.planks > 0 ? `🪵→<b>${res.planks}pl</b>` : '',
+    res.bricks > 0 ? `🧱<b>${res.bricks}</b>`  : '',
+    res.flour  > 0 ? `🌾→<b>${res.flour}fl</b>` : '',
+    res.bread  > 0 ? `🍞<b>${res.bread}</b>`   : '',
+    res.steel  > 0 ? `⚙<b>${res.steel}</b>`   : '',
+  ].filter(Boolean).join(' ');
+  _resBar.innerHTML = base + (processed ? `&nbsp;&nbsp;│&nbsp;&nbsp;${processed}` : '');
 }
 
 function _updateCitBar() {
