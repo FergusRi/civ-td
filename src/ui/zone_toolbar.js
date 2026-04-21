@@ -116,33 +116,39 @@ export function renderZoneDragPreview(ctx) {
   ctx.setLineDash([]);
 }
 
-// ── DOM toolbar (injected into #ui-root by initZoneToolbar) ───
+// ── Zone tab visibility (controlled by hud.js tab selection) ──
+let _zoneTabActive = false;
+
+export function setZoneTabActive(val) {
+  _zoneTabActive = val;
+  if (!val) cancelZoneTool();
+}
+export function isZoneTabActive() { return _zoneTabActive; }
+
+// ── DOM zone controls (injected into build panel tab body by hud.js) ──
 let _toolbar;
 let _flagBtn;
 
-export function initZoneToolbar(uiRoot) {
+export function initZoneToolbar(container) {
   _toolbar = document.createElement('div');
-  _toolbar.className = 'zone-toolbar';
+  _toolbar.className = 'zone-tab-body';
   _toolbar.innerHTML = `
-    <span class="zone-toolbar-label">Zones</span>
     <button class="zone-btn" id="zb-settlement" title="Paint Settlement Zone">🏡 Settlement</button>
     <button class="zone-btn" id="zb-defence"    title="Paint Defence Zone">🛡 Defence</button>
     <button class="zone-btn" id="zb-erase"      title="Erase Zone">🧹 Erase</button>
     <button class="zone-btn" id="zb-flag"       title="Place Flag (leader target)">🚩 Flag</button>
   `;
-  uiRoot.appendChild(_toolbar);
+  container.appendChild(_toolbar);
 
   document.getElementById('zb-settlement').addEventListener('click', () => setActiveZone(ZONE.SETTLEMENT));
   document.getElementById('zb-defence').addEventListener('click',    () => setActiveZone(ZONE.DEFENCE));
-  document.getElementById('zb-erase').addEventListener('click',      () => setActiveZone(ZONE.NONE));  // erase = paint NONE
+  document.getElementById('zb-erase').addEventListener('click', () => {
+    _activeZone  = ZONE.NONE;
+    _placingFlag = false;
+    _updateActiveBtn();
+  });
   _flagBtn = document.getElementById('zb-flag');
   _flagBtn.addEventListener('click', () => setPlacingFlag());
-
-  // Erase actually paints NONE — repurpose so user can drag-erase
-  document.getElementById('zb-erase').addEventListener('click', () => {
-    _activeZone = ZONE.NONE;
-    _placingFlag = false;
-  });
 }
 
 function _refreshFlagBtn() {

@@ -6,6 +6,7 @@ import { events, EV } from '../engine/events.js';
 import { BUILDING_CATEGORIES, BUILDINGS } from '../buildings/registry.js';
 import { selectBuildingType, getSelectedType, cancelPlacement } from '../buildings/placement.js';
 import { hasResources } from '../resources.js';
+import { initZoneToolbar, setZoneTabActive, cancelZoneTool } from './zone_toolbar.js';
 
 // ── DOM build panel ──────────────────────────────────────────────────────────
 let _root;
@@ -69,25 +70,43 @@ export function initUI() {
   _updateIntel();
 }
 
+const ZONE_TAB_IDX = BUILDING_CATEGORIES.length; // last tab index
+
 function _buildTabs(panel) {
   const tabRow  = _el('div', 'tab-row');
   const tabBody = _el('div', 'tab-body');
   panel.appendChild(tabRow);
   panel.appendChild(tabBody);
 
-  BUILDING_CATEGORIES.forEach((cat, i) => {
+  const allTabs = [...BUILDING_CATEGORIES, { label: '🗺 Zones', types: null }];
+
+  allTabs.forEach((cat, i) => {
     const tab = _el('button', 'tab-btn' + (i === 0 ? ' active' : ''));
     tab.textContent = cat.label;
     tab.addEventListener('click', () => {
       _selectedTab = i;
       document.querySelectorAll('.tab-btn').forEach((t, j) =>
         t.classList.toggle('active', j === i));
-      _renderTabBody(tabBody, cat.types);
+
+      const isZone = i === ZONE_TAB_IDX;
+      setZoneTabActive(isZone);
+      if (isZone) {
+        _renderZoneTabBody(tabBody);
+      } else {
+        cancelZoneTool();
+        _renderTabBody(tabBody, cat.types);
+      }
     });
     tabRow.appendChild(tab);
   });
 
   _renderTabBody(tabBody, BUILDING_CATEGORIES[0].types);
+}
+
+function _renderZoneTabBody(body) {
+  body.innerHTML = '';
+  // Let zone_toolbar inject its buttons into the tab body
+  initZoneToolbar(body);
 }
 
 function _renderTabBody(body, types) {

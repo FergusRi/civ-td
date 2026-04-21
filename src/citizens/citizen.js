@@ -21,7 +21,7 @@ export const citizens = [];
 
 const BASE_SPEED     = 60;   // px/s
 const WANDER_DIST    = 6;    // tiles
-const COTTAGE_COST   = { wood: 25 };
+const COTTAGE_COST   = {}; // free — limited by citizen count
 const COTTAGE_BUILD_TIME = 8; // seconds per cottage
 const HARVEST_TIME   = 1.5;  // seconds per strike at node
 const MAX_CARRY      = 3;    // strikes before returning
@@ -256,17 +256,19 @@ class Citizen {
   }
 
   _tryStartBuild() {
-    // Only build if there aren't enough homes
-    const homeTiles  = _settlementTiles().length;
-    const maxCottages = Math.floor(homeTiles / 6); // 1 cottage per 6 settlement tiles
+    // Cap: 1 cottage per citizen (each cottage holds 1 citizen until upgraded)
     const current    = _getCottages().length;
-    if (current >= maxCottages && current > 0) { this._buildCooldown = 20; return; }
-    if (!hasResources(COTTAGE_COST)) { this._buildCooldown = 10; return; }
+    const maxCottages = citizens.length; // 1:1 citizen → cottage
+    if (current >= maxCottages) { this._buildCooldown = 20; return; }
+
+    // Also cap by available settlement space
+    const homeTiles = _settlementTiles().length;
+    if (current >= Math.floor(homeTiles / 6)) { this._buildCooldown = 20; return; }
+
     const spot = _findCottageSpot();
     if (!spot) { this._buildCooldown = 10; return; }
 
-    // Reserve the spot immediately (place a ghost)
-    spendResources(COTTAGE_COST);
+    // Reserve the spot immediately
     this._buildSite = spot;
     this._state     = 'BUILDING';
     this._target    = { x: spot.tx*TILE+TILE/2, y: spot.ty*TILE+TILE/2 };

@@ -52,12 +52,12 @@ export const BUILDINGS = {
   cottage: {
     label:    'Cottage',
     category: 'housing',
-    cost:     { wood: 25 },
+    cost:     {},
     produces: {},
     hp:       80,
     size:     1,
-    citizenCap: 2,          // +2 max citizens
-    desc:     'Houses 2 citizens. Required for population growth.',
+    citizenCap: 1,          // 1 citizen per cottage (upgradeable via research)
+    desc:     'Built automatically by citizens. 1 citizen per cottage.',
   },
 
   // === DEFENCE — WALLS ===

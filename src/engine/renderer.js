@@ -8,7 +8,7 @@ import { renderUI } from '../ui/hud.js';
 import { getCamera } from './camera.js';
 import { renderZones } from '../world/zones.js';
 import { renderFlag } from '../world/settlement.js';
-import { renderZoneDragPreview } from '../ui/zone_toolbar.js';
+import { renderZoneDragPreview, isZoneTabActive } from '../ui/zone_toolbar.js';
 
 let _canvas, _ctx;
 let _lastTime = 0;
@@ -52,9 +52,11 @@ function draw() {
   _ctx.translate(-cam.x, -cam.y);
 
   renderWorld(_ctx, cam);
-  renderZones(_ctx, cam);           // zone overlays above terrain
-  renderZoneDragPreview(_ctx);      // drag rectangle preview
-  renderFlag(_ctx);                 // flag marker
+  if (isZoneTabActive()) {
+    renderZones(_ctx, cam);         // zone overlays — only visible on Zones tab
+    renderZoneDragPreview(_ctx);    // drag rectangle preview
+    renderFlag(_ctx);               // flag marker
+  }
   renderBuildings(_ctx, cam);
   renderMapSprites(_ctx, cam);
   renderCitizens(_ctx);
