@@ -11,6 +11,8 @@ import { initPhases } from './phases/phases.js';
 import { initUI } from './ui/hud.js';
 import { initResources } from './resources.js';
 import { showRegionSelect } from './screens/region_select.js';
+import { initZones } from './world/zones.js';
+import { initZoneToolbar } from './ui/zone_toolbar.js';
 
 const canvas = document.getElementById('game-canvas');
 
@@ -18,18 +20,25 @@ async function boot(regionId) {
   initEngine(canvas);
   initCamera(canvas);
   initInput(canvas);
-  initWorld(regionId);          // pass region so centre tiles correctly
-  await Promise.all([preloadMapSprites(), preloadTileImages(), preloadBuildingImages(), preloadWallTilesets(), preloadUnitImages()]);
+  initWorld(regionId);
+  await Promise.all([
+    preloadMapSprites(),
+    preloadTileImages(),
+    preloadBuildingImages(),
+    preloadWallTilesets(),
+    preloadUnitImages(),
+  ]);
   initResources();
+  initZones();              // must come before toolbar
   initBuildings();
   initCitizens();
   initCombat();
   initPhases();
   initUI();
+  initZoneToolbar(document.getElementById('ui-root'));  // inject zone toolbar
   startLoop();
 }
 
-// Show continent picker first, then boot with chosen region
 showRegionSelect((regionId) => {
   boot(regionId);
 });

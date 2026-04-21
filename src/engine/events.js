@@ -19,6 +19,7 @@ export const EV = {
   ENEMY_REACHED_BASE: 'enemy_reached_base',
   // Resources
   RESOURCES_CHANGED: 'resources_changed',
+  FLAG_PLACED:       'flag_placed',
 };
 
 export const events = {

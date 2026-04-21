@@ -6,6 +6,9 @@ import { renderCitizens } from '../citizens/citizen.js';
 import { renderProjectiles } from '../combat/projectiles.js';
 import { renderUI } from '../ui/hud.js';
 import { getCamera } from './camera.js';
+import { renderZones } from '../world/zones.js';
+import { renderFlag } from '../world/settlement.js';
+import { renderZoneDragPreview } from '../ui/zone_toolbar.js';
 
 let _canvas, _ctx;
 let _lastTime = 0;
@@ -27,7 +30,7 @@ export function startLoop() {
 }
 
 function loop(ts) {
-  const dt = Math.min((ts - _lastTime) / 1000, 0.1); // cap at 100ms
+  const dt = Math.min((ts - _lastTime) / 1000, 0.1);
   _lastTime = ts;
 
   update(dt);
@@ -49,6 +52,9 @@ function draw() {
   _ctx.translate(-cam.x, -cam.y);
 
   renderWorld(_ctx, cam);
+  renderZones(_ctx, cam);           // zone overlays above terrain
+  renderZoneDragPreview(_ctx);      // drag rectangle preview
+  renderFlag(_ctx);                 // flag marker
   renderBuildings(_ctx, cam);
   renderMapSprites(_ctx, cam);
   renderCitizens(_ctx);
