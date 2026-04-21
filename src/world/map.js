@@ -323,6 +323,29 @@ function _scatterSprites(rng, cx, cy) {
     }
   }
 
+  // Iron ore veins — ~8 clusters scattered across the map (on STONE tiles)
+  const IRON_CLUSTER_COUNT = 8;
+  for (let c = 0; c < IRON_CLUSTER_COUNT; c++) {
+    // Pick a cluster centre on a STONE-ish area, away from settlement
+    const angle = (c / IRON_CLUSTER_COUNT) * Math.PI * 2 + rng() * 0.8;
+    const dist  = 40 + Math.floor(rng() * 70); // 40–110 tiles from centre
+    const fcx   = Math.round(cx + Math.cos(angle) * dist);
+    const fcy   = Math.round(cy + Math.sin(angle) * dist);
+    const clusterR = 4 + Math.floor(rng() * 5);
+    const count    = 4 + Math.floor(rng() * 6);
+    for (let i = 0; i < count; i++) {
+      const a2  = rng() * Math.PI * 2;
+      const d2  = rng() * clusterR;
+      const itx = Math.round(fcx + Math.cos(a2) * d2);
+      const ity = Math.round(fcy + Math.sin(a2) * d2);
+      if (!_inBounds(itx, ity)) continue;
+      if (_grid[ity*COLS+itx] === T.WATER || _grid[ity*COLS+itx] === T.DIRT) continue;
+      const ddx = itx-cx, ddy = ity-cy;
+      if (ddx*ddx + ddy*ddy < CLEAR_R2) continue;
+      mapSprites.push({ tx: itx, ty: ity, kind: 'iron_ore', size: 18 });
+    }
+  }
+
   // Y-sort sprites
   mapSprites.sort((a, b) => a.ty - b.ty || a.tx - b.tx);
   console.log(`[map] ${COLS}×${ROWS} seed=${MAP_SEED} sprites=${mapSprites.length}`);
@@ -431,6 +454,7 @@ function _drawSprite(ctx, s, wx, wy) {
                : s.kind === 'tree_large' ? 'tree_large'
                : s.kind === 'stone_small'? 'rock_small'
                : s.kind === 'stone_large'? 'rock_large'
+               : s.kind === 'iron_ore'   ? null   // procedural only
                : null;
 
   const img = imgKey ? _imgs[imgKey] : null;
@@ -490,6 +514,22 @@ function _drawSprite(ctx, s, wx, wy) {
       ctx.beginPath(); ctx.ellipse(wx-r*0.1, wy-r*0.45, r*1.0, r*0.75, -0.2, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#B0B0B0';
       ctx.beginPath(); ctx.ellipse(wx-r*0.3, wy-r*0.75, r*0.45, r*0.3, -0.3, 0, Math.PI*2); ctx.fill();
+      break;
+    }
+    case 'iron_ore': {
+      // Dark rocky base
+      ctx.fillStyle = '#5A4A3A';
+      ctx.beginPath(); ctx.ellipse(wx, wy-r*0.4, r*1.0, r*0.65, 0, 0, Math.PI*2); ctx.fill();
+      // Rust-orange ore veins
+      ctx.fillStyle = '#B05A18';
+      ctx.beginPath(); ctx.ellipse(wx+r*0.1, wy-r*0.55, r*0.55, r*0.35, 0.4, 0, Math.PI*2); ctx.fill();
+      // Bright orange highlight flecks
+      ctx.fillStyle = '#E07820';
+      ctx.beginPath(); ctx.ellipse(wx-r*0.1, wy-r*0.65, r*0.28, r*0.18, -0.3, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(wx+r*0.3, wy-r*0.45, r*0.18, r*0.12, 0.5, 0, Math.PI*2); ctx.fill();
+      // Small shine dot
+      ctx.fillStyle = '#F8A040';
+      ctx.beginPath(); ctx.arc(wx-r*0.15, wy-r*0.72, r*0.1, 0, Math.PI*2); ctx.fill();
       break;
     }
   }

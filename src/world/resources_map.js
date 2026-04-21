@@ -6,7 +6,7 @@
 import { mapSprites, getTile, setTile, T, TILE, COLS, ROWS } from './map.js';
 
 // Node types
-export const NODE = { WOOD: 'wood', STONE: 'stone' };
+export const NODE = { WOOD: 'wood', STONE: 'stone', IRON: 'iron' };
 
 // Live node registry — populated from mapSprites + stone tiles on init
 // Each: { id, tx, ty, kind: NODE.*, hp, maxHp, reserved: citizenId|null }
@@ -17,6 +17,19 @@ let _nextId = 1;
 export function initResourceNodes() {
   _nodes.clear();
   _nextId = 1;
+
+  // Iron ore nodes from iron_ore sprites
+  for (const s of mapSprites) {
+    if (s.kind !== 'iron_ore') continue;
+    const id = `n${_nextId++}`;
+    _nodes.set(id, {
+      id, tx: s.tx, ty: s.ty,
+      kind: NODE.IRON,
+      hp: 5, maxHp: 5,
+      reserved: null,
+      _sprite: s,
+    });
+  }
 
   // Wood nodes from tree sprites
   for (const s of mapSprites) {
@@ -83,7 +96,7 @@ export function harvestNode(nodeId) {
   n.hp--;
   if (n.hp <= 0) {
     // Remove from map
-    if (n.kind === NODE.WOOD && n._sprite) {
+    if ((n.kind === NODE.WOOD || n.kind === NODE.IRON) && n._sprite) {
       const idx = mapSprites.indexOf(n._sprite);
       if (idx !== -1) mapSprites.splice(idx, 1);
     }

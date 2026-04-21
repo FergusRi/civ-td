@@ -52,10 +52,10 @@ function draw() {
   _ctx.translate(-cam.x, -cam.y);
 
   renderWorld(_ctx, cam);
+  renderZones(_ctx, cam);           // always show painted zones
   if (isZoneTabActive()) {
-    renderZones(_ctx, cam);         // zone overlays — only visible on Zones tab
-    renderZoneDragPreview(_ctx);    // drag rectangle preview
-    renderFlag(_ctx);               // flag marker
+    renderZoneDragPreview(_ctx);    // drag preview only when tab active
+    renderFlag(_ctx);               // flag marker only when tab active
   }
   renderBuildings(_ctx, cam);
   renderMapSprites(_ctx, cam);
