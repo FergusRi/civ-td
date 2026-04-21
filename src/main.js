@@ -12,6 +12,7 @@ import { initUI } from './ui/hud.js';
 import { initResources } from './resources.js';
 import { showRegionSelect } from './screens/region_select.js';
 import { initZones } from './world/zones.js';
+import { initResourceNodes } from './world/resources_map.js';
 import { initZoneToolbar } from './ui/zone_toolbar.js';
 
 const canvas = document.getElementById('game-canvas');
@@ -29,7 +30,8 @@ async function boot(regionId) {
     preloadUnitImages(),
   ]);
   initResources();
-  initZones();              // must come before toolbar
+  initZones();
+  initResourceNodes();              // must come before toolbar
   initBuildings();
   initCitizens();
   initCombat();
