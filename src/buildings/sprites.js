@@ -10,6 +10,7 @@ const _BLD_IMG_SRCS = {
   cottage:         '/buildings/house.png',
   barracks:        '/buildings/barracks.png',
   market:          '/buildings/market.png',
+  trade_terminal:  '/buildings/market.png',
   watchtower:      '/buildings/watchtower.png',
   tower_archer:    '/buildings/tower_archer.png',
   tower_ballista:  '/buildings/tower_ballista.png',

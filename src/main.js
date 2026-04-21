@@ -14,6 +14,7 @@ import { showRegionSelect } from './screens/region_select.js';
 import { initZones } from './world/zones.js';
 import { initResourceNodes } from './world/resources_map.js';
 import { initZoneToolbar } from './ui/zone_toolbar.js';
+import { initTradePanel } from './ui/trade_panel.js';
 
 const canvas = document.getElementById('game-canvas');
 
@@ -37,7 +38,8 @@ async function boot(regionId) {
   initCombat();
   initPhases();
   initUI();
-  initZoneToolbar(document.getElementById('ui-root'));  // inject zone toolbar
+  initZoneToolbar(document.getElementById('ui-root'));
+  initTradePanel(document.getElementById('ui-root'));
   startLoop();
 }
 

@@ -8,6 +8,7 @@ import { placedBuildings, getBuilding } from '../buildings/placement.js';
 import { BUILDINGS } from '../buildings/registry.js';
 import { addResources, getResources } from '../resources.js';
 import { getCanvas } from '../engine/renderer.js';
+import { fluctuatePrices } from '../ui/trade_panel.js';
 
 let _phase      = 'planning'; // 'planning' | 'wave' | 'gameover'
 let _wave       = 0;
@@ -156,5 +157,6 @@ function _endWave() {
   _setPhase('planning');
   _doProduction();
   _prepareNextWave();
+  fluctuatePrices();
   events.emit(EV.WAVE_ENDED, { wave: _wave });
 }

@@ -1,5 +1,5 @@
 import { screenToWorld } from './camera.js';
-import { tryPlaceBuilding, getSelectedType, cancelPlacement } from '../buildings/placement.js';
+import { tryPlaceBuilding, getSelectedType, cancelPlacement, getBuilding } from '../buildings/placement.js';
 import { getPhase } from '../phases/phases.js';
 import {
   handleZoneMouseDown,
@@ -10,6 +10,9 @@ import {
   isPlacingFlag,
 } from '../ui/zone_toolbar.js';
 import { ZONE } from '../world/zones.js';
+import { BUILDINGS } from '../buildings/registry.js';
+import { openTradePanel } from '../ui/trade_panel.js';
+import { TILE } from '../world/map.js';
 
 let _canvas;
 const mouse = { x: 0, y: 0, wx: 0, wy: 0 };
@@ -34,11 +37,23 @@ export function initInput(canvas) {
     const consumed = handleZoneMouseDown(canvas, e);
     if (consumed) return;
 
+    const r = canvas.getBoundingClientRect();
+    const w = screenToWorld(e.clientX - r.left, e.clientY - r.top);
+
+    // Check for trade terminal click (no placement selected, planning phase)
+    if (getPhase() === 'planning' && !getSelectedType()) {
+      const tx = Math.floor(w.x / TILE);
+      const ty = Math.floor(w.y / TILE);
+      const b  = getBuilding(tx, ty);
+      if (b) {
+        const def = BUILDINGS[b.type];
+        if (def?.isTrade) { openTradePanel(); return; }
+      }
+    }
+
     // Building placement
     if (getPhase() !== 'planning') return;
     if (!getSelectedType()) return;
-    const r = canvas.getBoundingClientRect();
-    const w = screenToWorld(e.clientX - r.left, e.clientY - r.top);
     tryPlaceBuilding(w.x, w.y);
   });
 

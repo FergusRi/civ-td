@@ -240,3 +240,94 @@ body {
 #zb-settlement.active { background: rgba(255,215,0,0.2);  border-color: #FFD700; color: #FFD700; }
 #zb-defence.active    { background: rgba(200,40,40,0.2);   border-color: #e04040; color: #ff8080; }
 #zb-flag.active       { background: rgba(100,200,100,0.2); border-color: #80dd80; color: #80ff80; }
+
+/* ── Trade Panel ──────────────────────────────────────────────────────────── */
+#trade-panel {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1e1a12;
+  border: 2px solid #c8a84b;
+  border-radius: 8px;
+  padding: 16px 20px;
+  min-width: 340px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 200;
+  box-shadow: 0 0 30px rgba(0,0,0,0.8);
+}
+
+.trade-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #f5d67a;
+  border-bottom: 1px solid #4a3e22;
+  padding-bottom: 8px;
+}
+
+.trade-header button {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.trade-header button:hover { color: #fff; }
+
+.trade-sub {
+  font-size: 0.75rem;
+  color: #9a8860;
+  margin: 0;
+}
+
+#trade-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trade-row {
+  display: grid;
+  grid-template-columns: 24px 70px 50px 90px 1fr;
+  align-items: center;
+  gap: 6px;
+  background: #2a2416;
+  border-radius: 5px;
+  padding: 6px 10px;
+}
+
+.trade-icon { font-size: 1.1rem; }
+.trade-name { color: #e8d8a0; font-size: 0.85rem; }
+.trade-have { color: #7ec8a0; font-size: 0.85rem; text-align: right; }
+.trade-price { color: #c8a84b; font-size: 0.8rem; }
+
+.trade-btns {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.sell-btn {
+  background: #3a2e10;
+  border: 1px solid #c8a84b;
+  color: #f5d67a;
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s;
+}
+.sell-btn:hover:not(:disabled) { background: #5a4820; }
+.sell-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: #555;
+  color: #888;
+}

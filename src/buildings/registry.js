@@ -37,14 +37,15 @@ export const BUILDINGS = {
     workerKind: 'stone',
     desc:       'Workers mine nearby stone deposits.',
   },
-  market: {
-    label:    'Market',
+  trade_terminal: {
+    label:    'Trade Terminal',
     category: 'production',
     cost:     { wood: 20, stone: 10 },
-    produces: { gold: 5 },
+    produces: {},
     hp:       55,
     size:     1,
-    desc:     'Produces 5 gold each wave.',
+    isTrade:  true,
+    desc:     'Click to sell resources for gold. Prices shift each wave.',
   },
 
   // === HOUSING ===
@@ -234,7 +235,7 @@ export const BUILDINGS = {
 
 // Tab categories for the build panel
 export const BUILDING_CATEGORIES = [
-  { label: '⚒ Production', types: ['lumberyard', 'farm', 'mine', 'market'] },
+  { label: '⚒ Production', types: ['lumberyard', 'farm', 'mine', 'trade_terminal'] },
   { label: '🏠 Housing',   types: ['cottage'] },
   { label: '🧱 Walls',     types: ['wall_wood', 'wall_stone', 'wall_metal'] },
   { label: '🏹 Towers',    types: ['tower_archer', 'tower_ballista', 'tower_cannon', 'tower_mage', 'tower_frost', 'tower_lightning', 'tower_catapult'] },
